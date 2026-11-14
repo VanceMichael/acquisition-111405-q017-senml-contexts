@@ -1,0 +1,255 @@
+[
+  {
+    "name": "base-reset",
+    "routes": [
+      {
+        "path": "/packs",
+        "body": {
+          "packs": [
+            "/pack/1",
+            "/pack/2"
+          ]
+        },
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/pack/1",
+        "body": [
+          {
+            "bn": "dev/",
+            "bt": 100,
+            "bu": "Cel",
+            "bv": 10,
+            "n": "temp",
+            "v": 0
+          },
+          {
+            "bv": 0,
+            "n": "temp",
+            "t": 1,
+            "v": 0,
+            "s": 2
+          }
+        ],
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/pack/2",
+        "body": [
+          {
+            "n": "other",
+            "v": 1
+          }
+        ],
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "expected": [
+      {
+        "packId": "1",
+        "ordinal": 0,
+        "name": "dev/temp",
+        "time": 100,
+        "value": 10
+      },
+      {
+        "packId": "1",
+        "ordinal": 1,
+        "name": "dev/temp",
+        "value": 0,
+        "sum": 2
+      },
+      {
+        "packId": "2",
+        "name": "other",
+        "time": 0,
+        "value": 1
+      }
+    ],
+    "forbidden": []
+  },
+  {
+    "name": "boolean-value",
+    "routes": [
+      {
+        "path": "/packs",
+        "body": {
+          "packs": [
+            "/pack/1"
+          ]
+        },
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/pack/1",
+        "body": [
+          {
+            "bn": "door/",
+            "bv": 12,
+            "n": "open",
+            "vb": false
+          }
+        ],
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "expected": [
+      {
+        "packId": "1",
+        "name": "door/open",
+        "value": false,
+        "valueType": "boolean"
+      }
+    ],
+    "forbidden": []
+  },
+  {
+    "name": "stable-relative-anchor",
+    "routes": [
+      {
+        "path": "/packs",
+        "body": {
+          "deliveries": [
+            {
+              "deliveryId": "d1",
+              "firstSeenAt": 1800000000,
+              "parts": [
+                "/part/1",
+                "/part/2"
+              ],
+              "receipt": "/accept/d1"
+            }
+          ]
+        },
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/packs",
+        "body": {
+          "deliveries": [
+            {
+              "deliveryId": "d1",
+              "firstSeenAt": 1800086400,
+              "parts": [
+                "/part/1",
+                "/part/2"
+              ],
+              "receipt": "/accept/d1"
+            }
+          ]
+        },
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/part/1",
+        "body": "[{\"bn\":\"room/\",\"bt\":-10,\"n\":\"temp\",",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/part/2",
+        "body": "\"v\":20}]",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/accept/d1",
+        "body": {
+          "accepted": true
+        },
+        "status": 200,
+        "method": "POST"
+      }
+    ],
+    "expected": [
+      {
+        "deliveryId": "d1",
+        "name": "room/temp",
+        "time": 1799999990,
+        "value": 20
+      }
+    ],
+    "forbidden": [],
+    "runs": 2,
+    "requiredRequests": [
+      "POST /accept/d1"
+    ]
+  },
+  {
+    "name": "missing-pack-part",
+    "routes": [
+      {
+        "path": "/packs",
+        "body": {
+          "deliveries": [
+            {
+              "deliveryId": "d1",
+              "firstSeenAt": 1800000000,
+              "parts": [
+                "/part/1",
+                "/part/2"
+              ],
+              "receipt": "/accept/d1"
+            }
+          ]
+        },
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/packs",
+        "body": {
+          "deliveries": [
+            {
+              "deliveryId": "d1",
+              "firstSeenAt": 1800086400,
+              "parts": [
+                "/part/1",
+                "/part/2"
+              ],
+              "receipt": "/accept/d1"
+            }
+          ]
+        },
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/part/1",
+        "body": "[{\"bn\":\"room/\",\"bt\":-10,\"n\":\"temp\",",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "path": "/part/2",
+        "body": {
+          "error": "not yet"
+        },
+        "status": 503,
+        "method": "GET"
+      },
+      {
+        "path": "/accept/d1",
+        "body": {
+          "accepted": true
+        },
+        "status": 200,
+        "method": "POST"
+      }
+    ],
+    "expected": [],
+    "forbidden": [],
+    "runs": 1,
+    "requiredRequests": [],
+    "prohibitedRequests": [
+      "/accept/d1"
+    ]
+  }
+]
