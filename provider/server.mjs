@@ -46,7 +46,10 @@ function sourceMatches(expression, fields) {
 }
 
 export async function startSource(scenarioName = fixtures[0].name) {
-  const scenario = fixtures.find(item => item.name === scenarioName);
+  // 允许测试传入内联情景对象；默认仍按名称从公开夹具查找，不改变来源限制。
+  const scenario = typeof scenarioName === 'object' && scenarioName !== null
+    ? scenarioName
+    : fixtures.find(item => item.name === scenarioName);
   if (!scenario) throw new Error(`未知资料情景：${scenarioName}`);
   const requests = [];
   const server = createServer(async (request, response) => {

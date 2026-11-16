@@ -2,6 +2,10 @@ export function createTransport(baseUrl, options = {}) {
   const root = new URL(baseUrl);
   if (!['127.0.0.1', 'localhost', '[::1]'].includes(root.hostname)) throw new Error('仅允许本地合成来源');
   const exchanges = [];
+  // 每次提交只携带尚未归档的交换，避免重复写入同一证据。
+  let archived = 0;
+  const takeExchanges = () => exchanges.slice(archived);
+  const markArchived = () => { archived = exchanges.length; };
   const maximumBytes = options.maximumBytes ?? 8 * 1024 * 1024;
   async function request(path, requestOptions = {}) {
     const url = new URL(path, root);
@@ -33,5 +37,5 @@ export function createTransport(baseUrl, options = {}) {
       text: () => bytes.toString('utf8'), json: () => JSON.parse(bytes.toString('utf8'))
     };
   }
-  return {request, exchanges, origin: root.origin};
+  return {request, exchanges, takeExchanges, markArchived, origin: root.origin};
 }
